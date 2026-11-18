@@ -88,7 +88,12 @@ export default function Teachers() {
           <tbody>
             {teachers.map((t) => (
               <tr key={t._id}>
-                <td>{t.name}</td>
+                <td>
+                  <div className="name-cell">
+                    <div className="avatar sm">{t.name.charAt(0).toUpperCase()}</div>
+                    {t.name}
+                  </div>
+                </td>
                 <td>{t.subject}</td>
                 <td>{t.qualification}</td>
                 <td>{t.experience !== undefined ? `${t.experience} yrs` : ''}</td>

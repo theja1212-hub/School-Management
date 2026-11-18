@@ -13,6 +13,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/students', require('./routes/students'));
 app.use('/api/teachers', require('./routes/teachers'));
 app.use('/api/fees', require('./routes/fees'));
+app.use('/api/payments', require('./routes/payments'));
 app.use('/api/attendance', require('./routes/attendance'));
 app.use('/api/results', require('./routes/results'));
 app.use('/api/dashboard', require('./routes/dashboard'));

@@ -93,7 +93,12 @@ export default function Students() {
           <tbody>
             {students.map((s) => (
               <tr key={s._id}>
-                <td>{s.name}</td>
+                <td>
+                  <div className="name-cell">
+                    <div className="avatar sm">{s.name.charAt(0).toUpperCase()}</div>
+                    {s.name}
+                  </div>
+                </td>
                 <td>{s.rollNo}</td>
                 <td>{s.className}</td>
                 <td>{s.section}</td>

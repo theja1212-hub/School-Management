@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Students from './pages/Students';
@@ -8,21 +8,28 @@ import Results from './pages/Results';
 import Fees from './pages/Fees';
 import Layout from './components/Layout';
 
-function Protected({ children }) {
+function Protected() {
   if (!localStorage.getItem('token')) return <Navigate to="/" />;
-  return <Layout>{children}</Layout>;
+  return (
+    <Layout>
+      <Outlet />
+    </Layout>
+  );
 }
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
-      <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
-      <Route path="/students" element={<Protected><Students /></Protected>} />
-      <Route path="/teachers" element={<Protected><Teachers /></Protected>} />
-      <Route path="/attendance" element={<Protected><Attendance /></Protected>} />
-      <Route path="/results" element={<Protected><Results /></Protected>} />
-      <Route path="/fees" element={<Protected><Fees /></Protected>} />
+      <Route element={<Protected />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/students" element={<Students />} />
+        <Route path="/teachers" element={<Teachers />} />
+        <Route path="/attendance" element={<Attendance />} />
+        <Route path="/results" element={<Results />} />
+        <Route path="/fees" element={<Fees />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }

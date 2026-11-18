@@ -1,14 +1,28 @@
 import { useEffect, useState } from 'react';
-import { Users, GraduationCap, CalendarCheck, Wallet, Clock } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell,
+  Users, GraduationCap, CalendarCheck, Wallet, Clock, UserPlus, ClipboardCheck,
+  FileText, CreditCard, CalendarDays, ArrowRight, Inbox,
+} from 'lucide-react';
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
 import api from '../services/api';
+import CountUp from '../components/CountUp';
+import IconBadge from '../components/IconBadge';
 
-const tipStyle = {
-  background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--text)',
-};
+const container = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } };
+const item = { hidden: { opacity: 0, y: 22 }, show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } } };
+
+const tipStyle = { background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)' };
+
+const actions = [
+  { to: '/students', label: 'Add student', sub: 'Register a new admission', icon: UserPlus, tone: 'indigo' },
+  { to: '/attendance', label: 'Mark attendance', sub: "Take today's roll call", icon: ClipboardCheck, tone: 'green' },
+  { to: '/results', label: 'Upload marks', sub: 'Create report cards', icon: FileText, tone: 'orange' },
+  { to: '/fees', label: 'Collect fee', sub: 'Record a payment', icon: CreditCard, tone: 'pink' },
+];
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -34,51 +48,74 @@ export default function Dashboard() {
   const total = stats ? stats.feeCollected + stats.feePending : 0;
   const paidPct = total ? Math.round((stats.feeCollected / total) * 100) : 0;
   const feeData = stats
+    ? [{ name: 'Collected', value: stats.feeCollected }, { name: 'Pending', value: stats.feePending }]
+    : [];
+
+  const cards = stats
     ? [
-        { name: 'Collected', value: stats.feeCollected },
-        { name: 'Pending', value: stats.feePending },
+        { label: 'Total Students', value: stats.totalStudents, icon: Users, g: 'g1' },
+        { label: 'Total Teachers', value: stats.totalTeachers, icon: GraduationCap, g: 'g2' },
+        { label: 'Attendance', value: stats.attendancePercentage, suffix: '%', decimals: 1, icon: CalendarCheck, g: 'g3' },
+        { label: 'Fees Collected', value: stats.feeCollected, prefix: '₹', icon: Wallet, g: 'g4' },
+        { label: 'Fees Pending', value: stats.feePending, prefix: '₹', icon: Clock, g: 'g5' },
       ]
     : [];
 
   return (
     <div>
-      <div className="hero">
+      <motion.div
+        className="hero-card"
+        initial={{ opacity: 0, y: -16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="orb o1" />
+        <div className="orb o2" />
+        <div className="orb o3" />
         <div>
-          <h1>{greet}, {user.name} 👋</h1>
-          <p className="sub">Here is what is happening in your school today.</p>
+          <h1>{greet}, {user.name}</h1>
+          <p>Here is what is happening in your school today.</p>
         </div>
-        <div className="date-chip">📅 {today}</div>
-      </div>
+        <div className="date-chip"><CalendarDays size={18} /> {today}</div>
+      </motion.div>
 
       {error && <p className="error">{error}</p>}
 
+      {!stats && !error && (
+        <div className="grid">
+          {[1, 2, 3, 4, 5].map((n) => <div className="skeleton" key={n} />)}
+        </div>
+      )}
+
       {stats && (
-        <>
+        <motion.div variants={container} initial="hidden" animate="show">
           <div className="grid">
-            <div className="stat g1">
-              <div className="stat-icon"><Users size={24} /></div>
-              <h3>Total Students</h3><p>{stats.totalStudents}</p>
-            </div>
-            <div className="stat g2">
-              <div className="stat-icon"><GraduationCap size={24} /></div>
-              <h3>Total Teachers</h3><p>{stats.totalTeachers}</p>
-            </div>
-            <div className="stat g3">
-              <div className="stat-icon"><CalendarCheck size={24} /></div>
-              <h3>Attendance</h3><p>{stats.attendancePercentage}%</p>
-            </div>
-            <div className="stat g4">
-              <div className="stat-icon"><Wallet size={24} /></div>
-              <h3>Fees Collected</h3><p>₹{stats.feeCollected}</p>
-            </div>
-            <div className="stat g5">
-              <div className="stat-icon"><Clock size={24} /></div>
-              <h3>Fees Pending</h3><p>₹{stats.feePending}</p>
-            </div>
+            {cards.map((c) => (
+              <motion.div key={c.label} className={`stat ${c.g}`} variants={item} whileHover={{ y: -6 }}>
+                <IconBadge icon={c.icon} tone="glass" size={46} />
+                <h3>{c.label}</h3>
+                <p><CountUp value={c.value} prefix={c.prefix} suffix={c.suffix} decimals={c.decimals} /></p>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="qa-grid">
+            {actions.map((a) => (
+              <motion.div key={a.to} variants={item} whileHover={{ y: -4 }} whileTap={{ scale: 0.98 }}>
+                <Link to={a.to} className="qa">
+                  <IconBadge icon={a.icon} tone={a.tone} size={46} />
+                  <div>
+                    <b>{a.label}</b>
+                    <small>{a.sub}</small>
+                  </div>
+                  <ArrowRight size={18} className="arrow" />
+                </Link>
+              </motion.div>
+            ))}
           </div>
 
           <div className="charts">
-            <div className="card">
+            <motion.div className="card" variants={item}>
               <div className="card-title"><h2>Attendance Trend</h2><span className="sub">Last 7 days</span></div>
               {stats.weekly && stats.weekly.length > 0 ? (
                 <div style={{ height: 260 }}>
@@ -86,24 +123,27 @@ export default function Dashboard() {
                     <AreaChart data={stats.weekly}>
                       <defs>
                         <linearGradient id="att" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.5} />
-                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                          <stop offset="5%" stopColor="#6d5efc" stopOpacity={0.5} />
+                          <stop offset="95%" stopColor="#6d5efc" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#94a3b855" />
                       <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} />
                       <YAxis domain={[0, 100]} stroke="#94a3b8" fontSize={12} unit="%" />
                       <Tooltip contentStyle={tipStyle} />
-                      <Area type="monotone" dataKey="percentage" stroke="#6366f1" strokeWidth={3} fill="url(#att)" />
+                      <Area type="monotone" dataKey="percentage" stroke="#6d5efc" strokeWidth={3} fill="url(#att)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <p className="empty">Mark attendance to see the trend here.</p>
+                <div className="empty">
+                  <IconBadge icon={CalendarCheck} tone="indigo" size={56} />
+                  <p>Mark attendance to see the trend here.</p>
+                </div>
               )}
-            </div>
+            </motion.div>
 
-            <div className="card">
+            <motion.div className="card" variants={item}>
               <div className="card-title"><h2>Fee Collection</h2></div>
               {total > 0 ? (
                 <>
@@ -125,14 +165,22 @@ export default function Dashboard() {
                   </div>
                 </>
               ) : (
-                <p className="empty">Add fees to see the chart.</p>
+                <div className="empty">
+                  <IconBadge icon={Wallet} tone="orange" size={56} />
+                  <p>Add fees to see the chart.</p>
+                </div>
               )}
-            </div>
+            </motion.div>
           </div>
 
-          <div className="card">
+          <motion.div className="card" variants={item}>
             <div className="card-title"><h2>Recently Added Students</h2></div>
-            {recent.length === 0 && <p className="empty" style={{ padding: 20 }}>No students yet.</p>}
+            {recent.length === 0 && (
+              <div className="empty" style={{ padding: 30 }}>
+                <IconBadge icon={Inbox} tone="blue" size={56} />
+                <p>No students yet.</p>
+              </div>
+            )}
             {recent.map((s) => (
               <div className="recent-item" key={s._id}>
                 <div className="avatar">{s.name.charAt(0).toUpperCase()}</div>
@@ -143,8 +191,8 @@ export default function Dashboard() {
                 <span className="tag">Class {s.className}-{s.section}</span>
               </div>
             ))}
-          </div>
-        </>
+          </motion.div>
+        </motion.div>
       )}
     </div>
   );
